@@ -10,11 +10,12 @@ const { API_KEY, PORT, BASE_URL } = process.env;
 
 app.use(cors());
 app.use(express.json());
+// http://localhost:8083/images/oscar.jpg
+// app.use(express.static("public"));
 
+app.use(express.static('public/images'));
 
-app.use('/public/images', express.static('public/images'));
-
-// app.use(express.static(path.join(__dirname, 'public')));
+//  app.use(express.static(path.join(__dirname, 'public')));
 
 app.use("/register", (req, res) =>{
     return res.status(200).json({api_key : API_KEY})
