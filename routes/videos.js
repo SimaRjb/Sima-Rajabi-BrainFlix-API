@@ -2,6 +2,12 @@ const express = require("express");
 const router = express.Router();
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
+const path = require('path');
+require("dotenv").config();
+
+
+const BASE_URL = `http://localhost:${process.env.PORT}`;
+
 
 const fetchVideos = () => {
   try {
@@ -12,23 +18,21 @@ const fetchVideos = () => {
   }
 };
 
-// const addMovie = (newMovie) => {
-//   const freshMovieList = fetchMovies();
-//   // freshMovieList.push(newMovie);
-//   // fs.writeFileSync("../data/movies.json", JSON.stringify(freshMovieList));
-//   fs.writeFileSync(
-//     "./data/movies.json",
-//     JSON.stringify([...freshMovieList, newMovie])
-//   );
-//   return newMovie;
-// };
 
 const addVideo = (newVideo) =>{
   const freshVideoList = fetchVideos();
+  if (!freshVideoList) {
+    freshVideoList = [];
+  }
   freshVideoList.push(newVideo)
-  fs.writeFileSync("./data/videos.json", JSON.stringify(freshVideoList));
+  fs.writeFileSync("./data/videos.json", JSON.stringify(freshVideoList, null, 2));
 }
 
+// // const imagePath = path.join(__dirname, '../public/images/sample.jpg');
+// const imagePath = path.join(__dirname, '../public/sample.jpg');
+
+//  // Read the image file from the filesystem
+//  const image = fs.readFileSync(imagePath, { encoding: 'base64' });
 
 router
   .route("/")
@@ -43,10 +47,11 @@ router
       res.status(500).json({ message: "Internal server error" });
     }
   })
-
   .post((req, res) => {
+    console.log("post request received")
     let newVideo;
     try {
+      console.log(req.body)
       const { title, description } = req.body;
       if (!title || !description) {
         // Respond with a 400 Bad Request status code if required fields are missing
@@ -54,14 +59,15 @@ router
           .status(400)
           .json({ error: "Title and description are required" });
       }
-
+      console.log("base url is: ", BASE_URL);
+      // const imagePath = "http://localhost:8081/public/images/sample.jpg"
+      const imagePath = `${BASE_URL}/public/images/sample.jpg`;
       const videoId = uuidv4();
-      const image = "oscar.jpg";
       const videoRes = {
         id: videoId,
         title: title,
         description: description,
-        image: image,
+        image: imagePath,
       };
       newVideo = generateRandomContent(videoRes);
       res.status(200).json(newVideo);
@@ -70,7 +76,12 @@ router
       console.error("Internal server error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
+    if(newVideo){
     addVideo(newVideo);
+    }
+    else{
+      console.log("new video is null")
+    }
   });
 
 

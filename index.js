@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-
+const path = require('path');
 require("dotenv").config();
 
 const videosRoutes = require("./routes/videos");
@@ -13,13 +13,18 @@ app.use(express.json());
 // http://localhost:8083/images/oscar.jpg
 // app.use(express.static("public"));
 
-app.use(express.static('public/images'));
+app.use('/public',express.static('public'));
+app.use('/public/images', express.static('public/images'));
+// app.use('/public', express.static(path.join(__dirname, 'public')));
+// app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
+// app.use(express.static(path.join(__dirname, 'public')));
 
-//  app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.use("/register", (req, res) =>{
     return res.status(200).json({api_key : API_KEY})
   });
+
 
 app.use("/", (req, res, next) => {
     const apiKey = req.query.api_key;
@@ -30,7 +35,7 @@ app.use("/", (req, res, next) => {
   });
 
 
-  app.use("/", videosRoutes);
+  app.use("/videos", videosRoutes);
 
   app.listen(PORT, ()=>{
     console.log("app is listening on", PORT)
