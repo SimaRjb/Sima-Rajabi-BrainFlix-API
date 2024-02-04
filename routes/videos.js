@@ -9,6 +9,8 @@ require("dotenv").config();
 const BASE_URL = `http://localhost:${process.env.PORT}`;
 
 
+
+
 const fetchVideos = () => {
   try {
     return JSON.parse(fs.readFileSync("./data/videos.json"));
@@ -28,21 +30,29 @@ const addVideo = (newVideo) =>{
   fs.writeFileSync("./data/videos.json", JSON.stringify(freshVideoList, null, 2));
 }
 
-// // const imagePath = path.join(__dirname, '../public/images/sample.jpg');
-// const imagePath = path.join(__dirname, '../public/sample.jpg');
+const WriteVideos = (videoList) =>{
+  fs.writeFileSync("./data/videos.json", JSON.stringify(videoList, null, 2));
+}
 
-//  // Read the image file from the filesystem
-//  const image = fs.readFileSync(imagePath, { encoding: 'base64' });
+const addComment = (videoId, newComment) =>{
+  try {
+    const videoList = fetchVideos();
+    const videoMatch = videoList.find(video => video.id == videoId);
+    videoMatch.comments.push(newComment);
+    WriteVideos(videoList);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
 
 router
   .route("/")
   .get((req, res) => {
     try {
       const videoList = fetchVideos();
-      // If fetchMovies() succeeds, return the video list
       res.status(200).json(videoList);
     } catch (error) {
-      // If there's an error fetching the video list, return an error response
       console.error("Error fetching video list:", error);
       res.status(500).json({ message: "Internal server error" });
     }
@@ -60,7 +70,6 @@ router
           .json({ error: "Title and description are required" });
       }
       console.log("base url is: ", BASE_URL);
-      // const imagePath = "http://localhost:8081/public/images/sample.jpg"
       const imagePath = `${BASE_URL}/public/images/sample.jpg`;
       const videoId = uuidv4();
       const videoRes = {
@@ -85,16 +94,6 @@ router
   });
 
 
-  // router.route("/:id")
-  // .get((req, res) => {
-  //   const { id } = req.params;
-  //   const videoMatch = fetchVideos().find((video) => video.id == id);
-  //   if(!videoMatch){
-  //     return res.status(404).json({message: `No video found with the ID of ${id}`});
-  //   } 
-  //   res.status(200).json(videoMatch);
-  // })
-
   router.route("/:id")
   .get((req, res) => {
     try {
@@ -109,6 +108,32 @@ router
       res.status(500).json({ message: "Internal server error" });
     }
   });
+
+  router.route("/:id/comments")
+  .post((req, res) =>{
+    try {
+      const { id } = req.params;
+      const videoMatch = fetchVideos().find((video) => video.id == id);
+      if (!videoMatch) {
+        return res.status(404).json({ message: `No video found with the ID of ${id}` });
+      }
+      const {name, comment} = req.body;
+      
+      const newComment ={
+        id: uuidv4(),
+        name : name,
+        comment: comment,
+        likes :0,
+        timestamp: Date.now()
+      }
+      addComment(id, newComment);
+      return res.status(200).json({"added comment" : newComment});
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  })
 
 
 // Function to generate random content for missing keys
