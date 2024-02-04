@@ -2,14 +2,10 @@ const express = require("express");
 const router = express.Router();
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
-const path = require('path');
+const path = require("path");
 require("dotenv").config();
 
-
 const BASE_URL = `http://localhost:${process.env.PORT}`;
-
-
-
 
 const fetchVideos = () => {
   try {
@@ -20,31 +16,51 @@ const fetchVideos = () => {
   }
 };
 
-
-const addVideo = (newVideo) =>{
+const addVideo = (newVideo) => {
   const freshVideoList = fetchVideos();
   if (!freshVideoList) {
     freshVideoList = [];
   }
-  freshVideoList.push(newVideo)
-  fs.writeFileSync("./data/videos.json", JSON.stringify(freshVideoList, null, 2));
-}
+  freshVideoList.push(newVideo);
+  fs.writeFileSync(
+    "./data/videos.json",
+    JSON.stringify(freshVideoList, null, 2)
+  );
+};
 
-const WriteVideos = (videoList) =>{
+const WriteVideos = (videoList) => {
   fs.writeFileSync("./data/videos.json", JSON.stringify(videoList, null, 2));
-}
+};
 
-const addComment = (videoId, newComment) =>{
+const addComment = (videoId, newComment) => {
   try {
     const videoList = fetchVideos();
-    const videoMatch = videoList.find(video => video.id == videoId);
+    const videoMatch = videoList.find((video) => video.id == videoId);
     videoMatch.comments.push(newComment);
     WriteVideos(videoList);
   } catch (error) {
     console.error(error);
     throw error;
   }
-}
+};
+
+const deleteComment = (videoId, commentId) => {
+  try {
+    if (videoId) {
+      const videoList = fetchVideos();
+      const videoMatch = videoList.find((video) => video.id == videoId);
+      
+      videoMatch.comments = videoMatch.comments.filter(
+        (comment) => comment.id != commentId
+      );
+      console.log(videoMatch.comments);
+      WriteVideos(videoList);
+    } 
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
 
 router
   .route("/")
@@ -58,10 +74,10 @@ router
     }
   })
   .post((req, res) => {
-    console.log("post request received")
+    console.log("post request received");
     let newVideo;
     try {
-      console.log(req.body)
+      console.log(req.body);
       const { title, description } = req.body;
       if (!title || !description) {
         // Respond with a 400 Bad Request status code if required fields are missing
@@ -85,56 +101,84 @@ router
       console.error("Internal server error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
-    if(newVideo){
-    addVideo(newVideo);
-    }
-    else{
-      console.log("new video is null")
-    }
-  });
-
-
-  router.route("/:id")
-  .get((req, res) => {
-    try {
-      const { id } = req.params;
-      const videoMatch = fetchVideos().find((video) => video.id == id);
-      if (!videoMatch) {
-        return res.status(404).json({ message: `No video found with the ID of ${id}` });
-      }
-      res.status(200).json(videoMatch);
-    } catch (error) {
-      console.error("Error fetching video:", error);
-      res.status(500).json({ message: "Internal server error" });
+    if (newVideo) {
+      addVideo(newVideo);
+    } else {
+      console.log("new video is null");
     }
   });
 
-  router.route("/:id/comments")
-  .post((req, res) =>{
-    try {
-      const { id } = req.params;
-      const videoMatch = fetchVideos().find((video) => video.id == id);
-      if (!videoMatch) {
-        return res.status(404).json({ message: `No video found with the ID of ${id}` });
-      }
-      const {name, comment} = req.body;
-      
-      const newComment ={
-        id: uuidv4(),
-        name : name,
-        comment: comment,
-        likes :0,
-        timestamp: Date.now()
-      }
-      addComment(id, newComment);
-      return res.status(200).json({"added comment" : newComment});
-
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Internal server error" });
+router.route("/:id").get((req, res) => {
+  try {
+    const { id } = req.params;
+    const videoMatch = fetchVideos().find((video) => video.id == id);
+    if (!videoMatch) {
+      return res
+        .status(404)
+        .json({ message: `No video found with the ID of ${id}` });
     }
-  })
+    res.status(200).json(videoMatch);
+  } catch (error) {
+    console.error("Error fetching video:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
+router.route("/:id/comments")
+.post((req, res) => {
+  try {
+    const { id } = req.params;
+    const videoMatch = fetchVideos().find((video) => video.id == id);
+    if (!videoMatch) {
+      return res
+        .status(404)
+        .json({ message: `No video found with the ID of ${id}` });
+    }
+    const { name, comment } = req.body;
+
+    const newComment = {
+      id: uuidv4(),
+      name: name,
+      comment: comment,
+      likes: 0,
+      timestamp: Date.now(),
+    };
+    addComment(id, newComment);
+    return res.status(201).json({ "added comment": newComment });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.route("/:id/comments/:commentId")
+.delete((req, res) => {
+  try {
+ 
+    const id = req.params.id;
+    const commentId = req.params.commentId;
+    const videoMatch = fetchVideos().find((video) => video.id == id);
+    if (!videoMatch) {
+      return res
+        .status(404)
+        .json({ message: `No video found with the ID of ${id}` });
+    }
+    const commentMatch = videoMatch.comments.find(
+      (comment) => comment.id == commentId
+    );
+    if(!commentMatch){
+      return res
+        .status(404)
+        .json({ message: `No comment found with the ID of ${commentId}` });
+    }
+    deleteComment(id, commentId);
+    return res.status(200).send("comment deleted");
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 // Function to generate random content for missing keys
 function generateRandomContent(videoObj) {
@@ -190,6 +234,5 @@ const generateComments = () => {
   ];
   return defaultComments;
 };
-
 
 module.exports = router;
