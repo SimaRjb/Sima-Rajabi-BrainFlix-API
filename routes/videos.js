@@ -49,16 +49,35 @@ const deleteComment = (videoId, commentId) => {
     if (videoId) {
       const videoList = fetchVideos();
       const videoMatch = videoList.find((video) => video.id == videoId);
-      
+
       videoMatch.comments = videoMatch.comments.filter(
         (comment) => comment.id != commentId
       );
-      console.log(videoMatch.comments);
       WriteVideos(videoList);
-    } 
+    }
   } catch (error) {
     console.error(error);
     throw error;
+  }
+};
+
+const addLike = (videoId) => {
+  try {
+    if (videoId) {
+      const videoList = fetchVideos();
+      const videoMatch = videoList.find((video) => video.id == videoId);
+      console.log("first: ", videoMatch.likes);
+      let likesInt = parseInt(videoMatch.likes.replace(/,/g, ''));
+      likesInt++;
+      const likesStr = likesInt.toLocaleString();
+      console.log("second: ", likesStr);
+      videoMatch.likes = likesStr;
+      console.log("video match likes: ", videoMatch.likes);
+      WriteVideos(videoList);
+      return likesStr;
+    }
+  } catch (error) {
+    console.log(error);
   }
 };
 
@@ -124,8 +143,7 @@ router.route("/:id").get((req, res) => {
   }
 });
 
-router.route("/:id/comments")
-.post((req, res) => {
+router.route("/:id/comments").post((req, res) => {
   try {
     const { id } = req.params;
     const videoMatch = fetchVideos().find((video) => video.id == id);
@@ -144,17 +162,15 @@ router.route("/:id/comments")
       timestamp: Date.now(),
     };
     addComment(id, newComment);
-    return res.status(201).json({ "added comment": newComment });
+    return res.status(201).json(newComment);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
-router.route("/:id/comments/:commentId")
-.delete((req, res) => {
+router.route("/:id/comments/:commentId").delete((req, res) => {
   try {
- 
     const id = req.params.id;
     const commentId = req.params.commentId;
     const videoMatch = fetchVideos().find((video) => video.id == id);
@@ -166,14 +182,31 @@ router.route("/:id/comments/:commentId")
     const commentMatch = videoMatch.comments.find(
       (comment) => comment.id == commentId
     );
-    if(!commentMatch){
+    if (!commentMatch) {
       return res
         .status(404)
         .json({ message: `No comment found with the ID of ${commentId}` });
     }
     deleteComment(id, commentId);
-    return res.status(200).send("comment deleted");
+    return res.status(200).json(commentMatch);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
+router.route("/:id/likes").put((req, res) => {
+  try {
+    const { id } = req.params;
+    const videoMatch = fetchVideos().find((video) => video.id == id);
+    if (!videoMatch) {
+      return res
+        .status(404)
+        .json({ message: `No video found with the ID of ${id}` });
+    }
+
+    const likes = addLike(id);
+    return res.status(200).json({id, likes});
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error" });
