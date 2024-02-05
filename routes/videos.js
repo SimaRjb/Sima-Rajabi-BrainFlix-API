@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
-const path = require("path");
 require("dotenv").config();
 
 const BASE_URL = `http://localhost:${process.env.PORT}`;
@@ -61,14 +60,16 @@ const deleteComment = (videoId, commentId) => {
   }
 };
 
-const addLike = (videoId) => {
+const modifyLike = (videoId, likeAction) => {
   try {
     if (videoId) {
       const videoList = fetchVideos();
       const videoMatch = videoList.find((video) => video.id == videoId);
       console.log("first: ", videoMatch.likes);
       let likesInt = parseInt(videoMatch.likes.replace(/,/g, ''));
-      likesInt++;
+
+      likeAction === "add" ? likesInt++ : likeAction === "remove" ? likesInt-- : null;
+
       const likesStr = likesInt.toLocaleString();
       console.log("second: ", likesStr);
       videoMatch.likes = likesStr;
@@ -198,6 +199,7 @@ router.route("/:id/comments/:commentId").delete((req, res) => {
 router.route("/:id/likes").put((req, res) => {
   try {
     const { id } = req.params;
+    const {likeAction} = req.body;
     const videoMatch = fetchVideos().find((video) => video.id == id);
     if (!videoMatch) {
       return res
@@ -205,7 +207,7 @@ router.route("/:id/likes").put((req, res) => {
         .json({ message: `No video found with the ID of ${id}` });
     }
 
-    const likes = addLike(id);
+    const likes = modifyLike(id, likeAction);
     return res.status(200).json({id, likes});
   } catch (error) {
     console.error(error);

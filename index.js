@@ -10,21 +10,13 @@ const { API_KEY, PORT, BASE_URL } = process.env;
 
 app.use(cors());
 app.use(express.json());
-// http://localhost:8083/images/oscar.jpg
-// app.use(express.static("public"));
 
 app.use('/public',express.static('public'));
 app.use('/public/images', express.static('public/images'));
-// app.use('/public', express.static(path.join(__dirname, 'public')));
-// app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
-// app.use(express.static(path.join(__dirname, 'public')));
-
-
 
 app.use("/register", (req, res) =>{
     return res.status(200).json({api_key : API_KEY})
   });
-
 
 app.use("/", (req, res, next) => {
     const apiKey = req.query.api_key;
@@ -33,7 +25,6 @@ app.use("/", (req, res, next) => {
     if(!isValid) return res.status(401).json({message: "Invalid API Key"});
     next();
   });
-
 
   app.use("/videos", videosRoutes);
 
