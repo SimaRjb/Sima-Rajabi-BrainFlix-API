@@ -12,6 +12,11 @@ My goal was to develop a full-stack single-page application from scratch using R
 - Applied Semantic HTML and BEM methodology for structured and maintainable code.
 - Utilized Flexbox, SAAS, and adopted a mobile-first design approach for responsive layouts.
 - Leveraged Axios for streamlined API calls and data management.
+## **Demo**
+
+
+https://github.com/SimaRjb/Sima-Rajabi-BrainFlix-API/assets/127899172/de01d658-eed1-479d-8e61-6321f050457e
+
 
 ## **Installation**
 ### **Clone**
