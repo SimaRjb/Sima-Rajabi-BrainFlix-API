@@ -1,5 +1,6 @@
+## **Server Side**
 ## **About**
-[Academic Project] - Completed within three weeks, this mock SPA (single-page application) for streaming videos showcases proficiency in React, React-Router, Node.js, Express.js, APIs, and other front-end essentials
+- Completed within three weeks, this mock SPA (single-page application) for streaming videos showcases proficiency in React, React-Router, Node.js, Express.js, APIs, and other front-end essentials
 
 ## **Goals and Achievements**
 My goal was to develop a full-stack single-page application from scratch using React, Express, and Node.js. I integrated an API to fetch video data, stream URLs, and default comments. For styling, I followed a provided mock-up, ensuring a responsive app aligned with the specifications.
