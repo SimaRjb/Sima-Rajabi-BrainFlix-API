@@ -1,4 +1,4 @@
-## **Server Side**
+# BrainFlix Server
 ## **About**
 - Completed within three weeks, this mock SPA (single-page application) for streaming videos showcases proficiency in React, React-Router, Node.js, Express.js, APIs, and other front-end essentials
 
